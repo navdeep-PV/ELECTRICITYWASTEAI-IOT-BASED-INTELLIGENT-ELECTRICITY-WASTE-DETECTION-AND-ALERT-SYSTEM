@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Settings – EnergyGuard IoT{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1>System Settings</h1>
+  <p class="lede">Configure room name, voltage and waste detection thresholds.</p>
+
+  <form method="post" class="settings-form">
+    <div class="field">
+      <label for="room_name">Room / Lab name</label>
+      <input type="text" id="room_name" name="room_name" value="{{ cfg.room_name }}">
+    </div>
+    <div class="field">
+      <label for="voltage">Mains voltage (V)</label>
+      <input type="number" id="voltage" name="voltage" step="1" value="{{ cfg.voltage }}">
+    </div>
+    <div class="field">
+      <label for="waste_threshold_w">Waste power threshold (W)</label>
+      <input type="number" id="waste_threshold_w" name="waste_threshold_w" step="1" value="{{ cfg.waste_threshold_w }}">
+      <p class="hint">If the room is empty and power exceeds this value, a waste alert is raised.</p>
+    </div>
+    <div class="field">
+      <label for="empty_minutes">Empty minutes before alert (informational)</label>
+      <input type="number" id="empty_minutes" name="empty_minutes" step="1" value="{{ cfg.empty_minutes }}">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Settings</button>
+    </div>
+  </form>
+
+  <div class="help-box" style="margin-top:32px">
+    <h3>Hardware connection</h3>
+    <p>ESP32 posts JSON to <code>/api/ingest</code>:</p>
+    <pre>{
+  "current_a": 0.52,
+  "power_w": 120,
+  "occupancy": 0,
+  "voltage_v": 230
+}</pre>
+    <p>Open the Arduino sketch in <code>firmware/electricity_monitor/</code> and set your Wi-Fi + server IP.</p>
+  </div>
+</section>
+{% endblock %}

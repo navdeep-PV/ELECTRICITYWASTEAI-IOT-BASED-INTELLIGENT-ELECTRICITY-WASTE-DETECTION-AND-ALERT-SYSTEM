@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Alerts – EnergyGuard IoT{% endblock %}
+
+{% block content %}
+<section>
+  <h1>Alert History</h1>
+  <p class="lede">Waste detections and system notifications. Acknowledge alerts after you have acted on them.</p>
+
+  {% if alerts %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Message</th>
+          <th>Power</th>
+          <th>Occupancy</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in alerts %}
+          <tr class="{% if not a.acknowledged %}row-unacked{% endif %}">
+            <td>{{ a.ts }}</td>
+            <td>{{ a.message }}</td>
+            <td>{% if a.power_w %}{{ '%.0f'|format(a.power_w) }} W{% else %}—{% endif %}</td>
+            <td>{% if a.occupancy is not none %}{{ 'Occupied' if a.occupancy else 'Empty' }}{% else %}—{% endif %}</td>
+            <td>
+              {% if a.acknowledged %}
+                <span class="tag tag-ok">Acknowledged</span>
+              {% else %}
+                <span class="tag tag-warn">Open</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if not a.acknowledged %}
+                <form method="post" action="{{ url_for('ack_alert', alert_id=a.id) }}">
+                  <button type="submit" class="btn btn-small">Acknowledge</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty">No alerts recorded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

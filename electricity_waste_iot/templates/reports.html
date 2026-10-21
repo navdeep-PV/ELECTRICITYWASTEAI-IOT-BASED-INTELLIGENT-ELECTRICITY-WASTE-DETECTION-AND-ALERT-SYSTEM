@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Reports – EnergyGuard IoT{% endblock %}
+
+{% block content %}
+<section>
+  <h1>Daily Consumption Report</h1>
+
+  <form method="get" class="day-picker">
+    <label for="day">Date</label>
+    <input type="date" id="day" name="day" value="{{ day }}">
+    <button type="submit" class="btn btn-primary btn-small">Show</button>
+  </form>
+
+  <div class="kpi-row" style="margin-top:24px">
+    <div class="kpi-card">
+      <div class="kpi-label">Samples</div>
+      <div class="kpi-value">{{ summary.samples or 0 }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg Power</div>
+      <div class="kpi-value">{{ '%.1f'|format(summary.avg_power or 0) }} <span class="unit">W</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Peak Power</div>
+      <div class="kpi-value">{{ '%.1f'|format(summary.max_power or 0) }} <span class="unit">W</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Est. Energy</div>
+      <div class="kpi-value">{{ summary.est_kwh or 0 }} <span class="unit">kWh</span></div>
+    </div>
+    <div class="kpi-card {% if summary.waste_samples %}waste{% endif %}">
+      <div class="kpi-label">Waste Samples</div>
+      <div class="kpi-value">{{ summary.waste_samples or 0 }}</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:28px">
+    <h2>Hourly Average Power – {{ day }}</h2>
+    {% if hourly %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Hour</th>
+            <th>Avg Power (W)</th>
+            <th>Occupied at some point</th>
+            <th>Bar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in hourly %}
+            <tr>
+              <td>{{ h.hour }}:00</td>
+              <td>{{ '%.1f'|format(h.avg_power) }}</td>
+              <td>{{ 'Yes' if h.occupied else 'No' }}</td>
+              <td>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width:{{ [h.avg_power / 10, 100]|min }}%"></div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No readings for this day. Run the simulator or connect the ESP32.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

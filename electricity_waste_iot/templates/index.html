@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – EnergyGuard IoT{% endblock %}
+
+{% block content %}
+<section class="hero-bar">
+  <div>
+    <h1>{{ room }}</h1>
+    <p class="muted">Real-time electricity monitoring & waste detection</p>
+  </div>
+  <div class="live-dot" id="live-status">
+    <span class="dot"></span> Live
+  </div>
+</section>
+
+<section class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Current Power</div>
+    <div class="kpi-value" id="kpi-power">
+      {% if latest %}{{ '%.0f'|format(latest.power_w) }}{% else %}—{% endif %}
+      <span class="unit">W</span>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Current Draw</div>
+    <div class="kpi-value" id="kpi-current">
+      {% if latest %}{{ '%.2f'|format(latest.current_a) }}{% else %}—{% endif %}
+      <span class="unit">A</span>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Occupancy</div>
+    <div class="kpi-value" id="kpi-occ">
+      {% if latest %}
+        {% if latest.occupancy %}Occupied{% else %}Empty{% endif %}
+      {% else %}—{% endif %}
+    </div>
+  </div>
+  <div class="kpi-card {% if latest and latest.waste_flag %}waste{% endif %}" id="kpi-waste-card">
+    <div class="kpi-label">Waste Status</div>
+    <div class="kpi-value" id="kpi-waste">
+      {% if latest and latest.waste_flag %}
+        Detected
+      {% else %}
+        Normal
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="two-col">
+  <div class="panel">
+    <h2>Power Trend (recent samples)</h2>
+    <div class="chart-wrap">
+      <canvas id="powerChart" width="600" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Today’s Summary</h2>
+    <dl class="summary-list">
+      <dt>Samples collected</dt>
+      <dd id="sum-samples">{{ summary.samples or 0 }}</dd>
+      <dt>Average power</dt>
+      <dd id="sum-avg">{{ '%.1f'|format(summary.avg_power or 0) }} W</dd>
+      <dt>Peak power</dt>
+      <dd id="sum-max">{{ '%.1f'|format(summary.max_power or 0) }} W</dd>
+      <dt>Waste samples</dt>
+      <dd id="sum-waste">{{ summary.waste_samples or 0 }}</dd>
+      <dt>Est. energy today</dt>
+      <dd id="sum-kwh">{{ summary.est_kwh or 0 }} kWh</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Recent Alerts</h2>
+    <a href="{{ url_for('alerts_page') }}">View all →</a>
+  </div>
+  {% if alerts %}
+    <ul class="alert-list" id="alert-list">
+      {% for a in alerts[:5] %}
+        <li class="{% if not a.acknowledged %}unacked{% endif %}">
+          <span class="alert-ts">{{ a.ts[11:19] }}</span>
+          <span class="alert-msg">{{ a.message }}</span>
+          {% if a.power_w %}<span class="alert-meta">{{ '%.0f'|format(a.power_w) }} W</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty" id="alert-empty">No alerts yet. Run the sensor simulator or connect ESP32.</p>
+  {% endif %}
+</section>
+
+<section class="help-box">
+  <h3>Demo without hardware</h3>
+  <p>In a second terminal run: <code>python simulate_sensors.py</code></p>
+  <p>It will push realistic occupancy + power readings every ~10 seconds so the dashboard stays live.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const initialReadings = {{ readings | tojson }};
+  initDashboard(initialReadings);
+</script>
+{% endblock %}
